@@ -1,0 +1,402 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body-wrap {
+    display: block;
+    font-family: var(--font-sans);
+    padding: 1.5rem 1rem 2rem;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .header h1 {
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    letter-spacing: -0.5px;
+  }
+
+  .header p {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin-top: 4px;
+  }
+
+  .upload-zone {
+    border: 1.5px dashed var(--color-border-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: 1.25rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    background: var(--color-background-secondary);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .upload-zone:hover {
+    border-color: var(--color-border-primary);
+    background: var(--color-background-primary);
+  }
+
+  .upload-zone.drag-over {
+    border-color: #7F77DD;
+    background: #EEEDFE;
+  }
+
+  .upload-icon {
+    width: 32px;
+    height: 32px;
+    margin: 0 auto 8px;
+    color: var(--color-text-tertiary);
+  }
+
+  .upload-zone p {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin-bottom: 8px;
+  }
+
+  .upload-zone span {
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+  }
+
+  #file-input { display: none; }
+
+  .upload-btn {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 6px 16px;
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    background: var(--color-background-primary);
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+
+  .upload-btn:hover { background: var(--color-background-secondary); }
+
+  .sounds-section h2 {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.75rem;
+  }
+
+  .sounds-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    margin-bottom: 1.5rem;
+  }
+
+  .sound-btn {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 1rem 0.75rem;
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    background: var(--color-background-primary);
+    cursor: pointer;
+    transition: background 0.1s, transform 0.08s, border-color 0.1s;
+    min-height: 90px;
+    text-align: center;
+  }
+
+  .sound-btn:hover {
+    background: var(--color-background-secondary);
+    border-color: var(--color-border-secondary);
+  }
+
+  .sound-btn:active { transform: scale(0.96); }
+
+  .sound-btn.playing {
+    border-color: #7F77DD;
+    background: #EEEDFE;
+  }
+
+  .sound-btn .btn-icon {
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  .sound-btn .btn-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    word-break: break-word;
+    line-height: 1.3;
+  }
+
+  .sound-btn .delete-btn {
+    position: absolute;
+    top: 5px;
+    right: 6px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--color-text-tertiary);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    padding: 0;
+    opacity: 0;
+    transition: opacity 0.1s, color 0.1s;
+  }
+
+  .sound-btn:hover .delete-btn { opacity: 1; }
+  .sound-btn .delete-btn:hover { color: #D85A30; }
+
+  .playing-bar {
+    display: flex;
+    gap: 3px;
+    align-items: flex-end;
+    height: 14px;
+  }
+
+  .playing-bar span {
+    display: block;
+    width: 3px;
+    background: #7F77DD;
+    border-radius: 2px;
+    animation: bounce 0.6s ease-in-out infinite alternate;
+  }
+
+  .playing-bar span:nth-child(2) { animation-delay: 0.1s; }
+  .playing-bar span:nth-child(3) { animation-delay: 0.2s; }
+  .playing-bar span:nth-child(4) { animation-delay: 0.15s; }
+
+  @keyframes bounce {
+    from { height: 4px; }
+    to { height: 14px; }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--color-text-tertiary);
+    font-size: 14px;
+    border: 0.5px dashed var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    background: var(--color-background-secondary);
+  }
+
+  .empty-state .empty-icon { font-size: 32px; margin-bottom: 8px; }
+
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(60px);
+    background: #3C3489;
+    color: #EEEDFE;
+    padding: 8px 18px;
+    border-radius: var(--border-radius-md);
+    font-size: 13px;
+    font-weight: 500;
+    transition: transform 0.25s ease;
+    pointer-events: none;
+    z-index: 999;
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+
+<body-wrap>
+  <div class="header">
+    <h1>🥞 Crepeleria</h1>
+    <p>Toca un botón para reproducir el sonido</p>
+  </div>
+
+  <div class="upload-zone" id="upload-zone">
+    <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M12 16V4m0 0L8 8m4-4l4 4" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M3 16v2a2 2 0 002 2h14a2 2 0 002-2v-2" stroke-linecap="round"/>
+    </svg>
+    <p>Arrastra tus audios aquí o haz clic para elegirlos</p>
+    <span>MP3, WAV, OGG, M4A · Máx. 20 MB por archivo</span>
+    <br>
+    <label class="upload-btn" for="file-input">Seleccionar audios</label>
+    <input type="file" id="file-input" multiple accept="audio/*">
+  </div>
+
+  <div class="sounds-section">
+    <h2>Sonidos</h2>
+    <div class="sounds-grid" id="sounds-grid">
+      <div class="empty-state" id="empty-state">
+        <div class="empty-icon">🎵</div>
+        Sube tus audios para empezar
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</body-wrap>
+
+<script>
+  const sounds = [];
+  let currentAudio = null;
+  let currentBtn = null;
+
+  const grid = document.getElementById('sounds-grid');
+  const emptyState = document.getElementById('empty-state');
+  const fileInput = document.getElementById('file-input');
+  const uploadZone = document.getElementById('upload-zone');
+  const toast = document.getElementById('toast');
+
+  const ICONS = ['🎶', '🎵', '🎤', '🥞', '🍓', '🍫', '🍦', '🍰', '🎂', '🔔', '⭐', '🌟'];
+  let iconIndex = 0;
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
+  function addSound(file) {
+    if (file.size > 20 * 1024 * 1024) {
+      showToast('Archivo muy grande (máx. 20 MB)');
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    const name = file.name.replace(/\.[^.]+$/, '');
+    const icon = ICONS[iconIndex % ICONS.length];
+    iconIndex++;
+    sounds.push({ url, name, icon, id: Date.now() + Math.random() });
+    render();
+    showToast(`"${name}" agregado`);
+  }
+
+  function render() {
+    if (sounds.length === 0) {
+      grid.innerHTML = '';
+      grid.appendChild(emptyState);
+      return;
+    }
+    if (emptyState.parentNode === grid) grid.removeChild(emptyState);
+
+    const existing = {};
+    grid.querySelectorAll('.sound-btn').forEach(b => existing[b.dataset.id] = b);
+
+    sounds.forEach(s => {
+      if (existing[s.id]) return;
+      const btn = document.createElement('div');
+      btn.className = 'sound-btn';
+      btn.dataset.id = s.id;
+      btn.innerHTML = `
+        <button class="delete-btn" title="Eliminar" data-id="${s.id}">×</button>
+        <span class="btn-icon">${s.icon}</span>
+        <span class="btn-label">${s.name}</span>
+      `;
+      btn.addEventListener('click', (e) => {
+        if (e.target.classList.contains('delete-btn')) return;
+        playSound(s, btn);
+      });
+      btn.querySelector('.delete-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteSound(s.id);
+      });
+      grid.appendChild(btn);
+    });
+
+    Object.keys(existing).forEach(id => {
+      if (!sounds.find(s => s.id == id)) existing[id].remove();
+    });
+  }
+
+  function playSound(s, btn) {
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+      if (currentBtn) {
+        currentBtn.classList.remove('playing');
+        const old = currentBtn.querySelector('.playing-bar');
+        if (old) old.remove();
+        const oldIcon = currentBtn.querySelector('.btn-icon');
+        if (oldIcon) oldIcon.style.display = '';
+      }
+      if (currentBtn === btn) {
+        currentAudio = null;
+        currentBtn = null;
+        return;
+      }
+    }
+
+    const audio = new Audio(s.url);
+    currentAudio = audio;
+    currentBtn = btn;
+
+    btn.classList.add('playing');
+    const icon = btn.querySelector('.btn-icon');
+    icon.style.display = 'none';
+    const bar = document.createElement('div');
+    bar.className = 'playing-bar';
+    bar.innerHTML = '<span></span><span></span><span></span><span></span>';
+    btn.insertBefore(bar, icon);
+
+    audio.play().catch(() => showToast('Error al reproducir'));
+
+    audio.addEventListener('ended', () => {
+      btn.classList.remove('playing');
+      bar.remove();
+      icon.style.display = '';
+      if (currentBtn === btn) { currentAudio = null; currentBtn = null; }
+    });
+  }
+
+  function deleteSound(id) {
+    const idx = sounds.findIndex(s => s.id == id);
+    if (idx === -1) return;
+    const s = sounds[idx];
+    if (currentAudio && currentBtn && currentBtn.dataset.id == id) {
+      currentAudio.pause();
+      currentAudio = null;
+      currentBtn = null;
+    }
+    URL.revokeObjectURL(s.url);
+    sounds.splice(idx, 1);
+    render();
+    showToast('Sonido eliminado');
+  }
+
+  fileInput.addEventListener('change', (e) => {
+    Array.from(e.target.files).forEach(addSound);
+    fileInput.value = '';
+  });
+
+  uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.classList.add('drag-over');
+  });
+
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+
+  uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('drag-over');
+    Array.from(e.dataTransfer.files)
+      .filter(f => f.type.startsWith('audio/'))
+      .forEach(addSound);
+  });
+</script>
